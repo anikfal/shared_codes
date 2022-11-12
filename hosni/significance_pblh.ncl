@@ -5,13 +5,6 @@ begin
   X = in1->PBLH
   Y = in2->PBLH 
 
-opt = True
-opt@PrintStat = True
-;printMinMax(X,0)
-;printMinMax(Y,0)
-;statb = stat_dispersion(X, opt )
-;statb = stat_dispersion(Y, opt )
-
   diff = X-Y
  siglvl  = 0.05
   aveX    = dim_avg_n (X,0)             ; 23.6    ; dim_avg_n (X,0)
@@ -20,18 +13,15 @@ opt@PrintStat = True
   varY    = dim_variance_n (Y,0)        ; 13.477
   sX      = dimsizes (X(:,0,0))
   sY      = dimsizes(Y(:,0,0))   ;dimsizes (Y&XTIME)
-
-exit() 
-
                                                   ; Following not used; FYI only
   diffXY  = aveX - aveY                            ; 4.378
   iflag   = False ;True                                   ; population variance similar
-  tval_opt= False                                  ; p-value only
   prob = 1. -ttest(aveX,varX,sX, aveY,varY,sY, iflag, False)
-wks= gsn_open_wks("ps","SignifPlot_pblh")
+
+wks= gsn_open_wks("x11","SignifPlot_pblh")
 res = True
 gsn_define_colormap(wks,"MPL_rainbow")	; choose a color map
-  res@lbBoxEndCapStyle     = "TriangleBothEnds"   ; triangle label bar
+res@lbBoxEndCapStyle     = "TriangleBothEnds"   ; triangle label bar
 res2 = True
 res2@gsnDraw = False
 res2@gsnFrame = False
@@ -44,17 +34,17 @@ res2@cnLineLabelsOn = False ;-- do not add line labels
 res2@lbLabelBarOn = False ;-- disable labelbar
 res2@cnFillColor = "black" ;-- trick to have the fill pattern in colour (choose other than "black")
 
-opt = True
-opt@gsnShadeFillType = "pattern" ;-- shading is a pattern fill
-opt@gsnShadeLow = 17 ;-- pattern type is dots (#17) for all values <= 0.05
-opt@gsnShadeFillScaleF = 0.75 ;-- density of fill pattern (the lower the denser); default=1.0
+;opt = True
+;opt@gsnShadeFillType = "pattern"
+;opt@gsnShadeLow = 17
+;opt@gsnShadeFillScaleF = 0.75
   
   res@tfDoNDCOverlay       = True     
 
-  if (.not.res@tfDoNDCOverlay) then
-      diff@lat2d = f->XLAT(0,:,:)                      ; direct assignment
-      diff@lon2d = f->XLONG(0,:,:)
-  end if
+;  if (.not.res@tfDoNDCOverlay) then
+;      diff@lat2d = f->XLAT(0,:,:)                      ; direct assignment
+;      diff@lon2d = f->XLONG(0,:,:)
+;  end if
   res@pmTickMarkDisplayMode = "Always"         ; turn on tickmarks
   
 dimx  = dimsizes(diff)                          ; dimensions of x
@@ -64,7 +54,7 @@ dimx  = dimsizes(diff)                          ; dimensions of x
  kl    =  6 
 plot=gsn_csm_contour_map(wks,diff,res)
 pval = gsn_csm_contour(wks,prob,res2) ;-- this adds a contour line around the stippling
-pval = gsn_contour_shade(pval,0.05,1.00,opt) ;-- this adds the stippling for all pvalues <= 0.05
+;pval = gsn_contour_shade(pval,0.05,1.00,opt) ;-- this adds the stippling for all pvalues <= 0.05
 overlay(plot,pval)
 draw(plot)
 frame(wks)
