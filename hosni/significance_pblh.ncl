@@ -29,7 +29,7 @@ begin
 wks= gsn_open_wks("x11","SignifPlot_pblh")
 res = True
 res@cnFillOn = True
-res@gsnDraw = True
+res@gsnDraw = False
 res@gsnFrame = False
 ; gsn_define_colormap(wks,"MPL_rainbow")	; choose a color map
 ; res@lbBoxEndCapStyle     = "TriangleBothEnds"   ; triangle label bar
@@ -39,7 +39,9 @@ res2@gsnDraw = False
 res2@gsnFrame = False
 ; res2@gsnAddCyclic = False
 res2@cnLevelSelectionMode = "ExplicitLevels"
-res2@cnLevels = (/0.05/) ;-- draw only the 95% contour line, 0.05 for 5%
+;res2@cnLevels = (/0.05/) ;-- draw only the 95% contour line, 0.05 for 5%
+res2@cnMaxLevelValF = 1
+res2@cnMinLevelValF = 0.95
 res2@cnInfoLabelOn = False
 res2@cnFillOn = True
 res2@cnLinesOn = False ;-- draw contour lines
@@ -51,11 +53,17 @@ res2@cnFillColor = "black" ;-- trick to have the fill pattern in colour (choose 
 ; res@pmTickMarkDisplayMode = "Always"         ; turn on tickmarks
 ;res@cnFillColors = 
 contour_tc = wrf_contour(in3, wks, diffXY, res)
+print("11111")
 pval = wrf_contour(in3, wks, prob, res2)
-plot = wrf_map_overlays(in3, wks, (/contour_tc, pval/), True, True)
+print("22222")
+mpres = True
+mpres@mpOutlineBoundarySets = "National"
+plot = wrf_map_overlays(in3, wks, (/contour_tc, pval/), True, mpres)
+print("33333")
 ;draw(contour_tc)
 draw(plot)
-frame(wks)
+print("44444")
+;frame(wks)
 
 ; plot = gsn_csm_contour_map(wks, diffXY, res)
 ; pval = gsn_csm_contour(wks, prob, res2) ;-- this adds a contour line around the stippling
