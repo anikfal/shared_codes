@@ -70,6 +70,8 @@ mpres@mpNationalLineColor         = "black"
 mpres@mpGeophysicalLineThicknessF = 4
 mpres@mpNationalLineThicknessF    = 4
 mpres@mpFillOn = True
+mpres@gsnDraw               =  False                  ;-- don't draw the plot yet
+mpres@gsnFrame              =  False
 ; mpres@mpFillColors = (/"transparent","LightSkyBlue1","transparent","LightSkyBlue1", "transparent"/)
 mpres@mpFillColors = (/"transparent","gray50","gray50","gray50", "transparent"/)
 ; mpres@mpLandFillColor             = "red"
@@ -77,5 +79,28 @@ mpres@mpFillColors = (/"transparent","gray50","gray50","gray50", "transparent"/)
 mpres@mpFillDrawOrder             =  "PreDraw"  ;"PostDraw"  ; draw map fill last
 ; plot = wrf_map_overlays(in3, wks, (/contour_tc, pval/), True, mpres)
 plot = wrf_map_overlays(in3, wks, (/contour_tc/), True, mpres)
+; setvalues plot
+; "vpXF"      : 0.15
+; "vpYF"      : 0.85
+; "vpWidthF"  : 0.7
+; "vpHeightF" : 0.7
+; end setvalues
+; txres                       = True
+; txres@txPerimOn             = True
+; txres@txBackgroundFillColor = "Salmon"
+; txres@txFontHeightF         = 0.03
+; txres@txBackgroundFillColor = "transparent"
+; txres@txFont                = "helvetica-bold"
+; txid1 = gsn_create_text(wks, "String 1", txres)
+; amres = True
+; amres@amParallelPosF   = 0.5    ; This is the right edge of the plot.
+; amres@amOrthogonalPosF = 0.5    ; This is the bottom edge of the plot.
+; amres@amJust           = "BottomRight"
+; annoid1 = gsn_add_annotation(plot, txid1, amres)
+; txres1                     =  True
+; txres1@txFontHeightF       =  0.03
+; txres1@txAngleF            =  40.                     ;-- rotate text string 40 degrees
+; text1 = gsn_add_text(wks,plot,"Atlantic",0,0,txres1)
 draw(plot)
+; frame(wks)
 end
