@@ -14,19 +14,22 @@ varX    = dim_variance_n_Wrap (X,0)
 varY    = dim_variance_n_Wrap (Y,0)
 sX      = dimsizes (X(:,0,0))
 sY      = dimsizes(Y(:,0,0))   ;dimsizes (Y&XTIME)
-diffXY  = aveX - aveY
+iflag   = False ;True                                   ; population variance similar
+prob0 = 1. -ttest(aveX,varX,sX, aveY,varY,sY, iflag, False)
+prob = where(prob0.gt.0.95, 1, 0)
+; prob = prob0
+prob@lat2d = lat
+prob@lon2d = lon
+copy_VarCoords(X(0,:,:), prob)
+prob@description = "T-Test significance > 0.95"
+diffXY0  = aveX - aveY
+diffXY  = mask(diffXY0, prob, 1)
 copy_VarCoords(aveX, diffXY)
 diffXY@lat2d = lat
 diffXY@lon2d = lon
 diffXY@description = "pblh_omet - pblh_fbda"
 diffXY@units = "m"
-iflag   = False ;True                                   ; population variance similar
-prob = 1. -ttest(aveX,varX,sX, aveY,varY,sY, iflag, False)
-prob@lat2d = lat
-prob@lon2d = lon
-copy_VarCoords(X(0,:,:), prob)
-prob@description = "T-Test significance > 0.95"
-wks= gsn_open_wks("png","SignifPlot_pblh")
+wks= gsn_open_wks("x11","SignifPlot_pblh")
 res = True
 res@cnFillOn = True
 res@gsnDraw = False
