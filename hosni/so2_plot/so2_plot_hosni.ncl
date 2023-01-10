@@ -3,7 +3,6 @@ load "$NCARG_ROOT/lib/ncarg/nclscripts/wrf/WRFUserARW.ncl"
 
 begin
 
-
 csvfile  = asciiread("station_data.csv",-1,"string")
 nlines = dimsizes(csvfile)-1   ; First line is a header
 ;---First line is name of each field
@@ -15,21 +14,12 @@ do nf=0, nfields-1
   csv_fields(nf,:) = str_get_field(csvfile(1:), nf+1, delim)    
 end do
 
-
 ; mycolors = read_colormap_file("NCV_jet")
-mycolors = read_colormap_file("WhiteBlueGreenYellowRed")
-; var = read_colormap_file("WhiteBlueGreenYellowRed")
-; print(var(:55,:))
-; exit()
-  ; ff = span_color_rgba("WhiteBlueGreenYellowRed", 1)
-; colors  = span_color_rgba("NCV_jet",8)
-; printVarSummary(colors)
-; printVarSummary(var)
+; mycolors = read_colormap_file("WhiteBlueGreenYellowRed")
+; mycolors = read_colormap_file("precip2_17lev")
+mycolors = read_colormap_file("precip2_15lev")
 
-; print(var(:7,:))
-; print(colors)
-; exit()
-
+mycolors_num = dimsizes(mycolors(:,0))
 
 filewrf = addfile("wrfout_d01_2022-01-15_all", "r") ;needed for correct XLAT and XLONG. Because filefas is a manipulation of the original WRF file
 ;filefas = addfile("15-25-fasdas.nc", "r")
@@ -50,8 +40,10 @@ res@cnFillOn = True
 ; res@cnFillPalette = "WhiteBlueGreenYellowRed"
 res@cnFillPalette = mycolors  ;"WhiteBlueGreenYellowRed"
 res@cnLevelSelectionMode = "ManualLevels"
-res@cnMinLevelValF = 2
-res@cnMaxLevelValF = 44
+so2min = 2
+so2max = 36
+res@cnMinLevelValF = so2min
+res@cnMaxLevelValF = so2max
 res@cnLevelSpacingF = 2
 contourfas = wrf_contour(filefas, wks, so2fas, res)
 pltres = True
@@ -60,8 +52,8 @@ mpres = True
 mpres@mpOutlineBoundarySets = "National"
 mpres@mpGeophysicalLineColor      = "black"
 mpres@mpNationalLineColor         = "black"
-mpres@mpGeophysicalLineThicknessF = 4
-mpres@mpNationalLineThicknessF    = 4
+mpres@mpGeophysicalLineThicknessF = 2
+mpres@mpNationalLineThicknessF    = 2
 mpres@mpFillOn = True
 mpres@gsnDraw               =  False                  ;-- don't draw the plot yet
 mpres@gsnFrame              =  False
@@ -71,7 +63,7 @@ plot = wrf_map_overlays(filewrf, wks, (/contourfas/), pltres, mpres)
 lats  = tofloat(csv_fields(1,:))     ;(/   -20,       -25,      -30,      -35/)
 lons  = tofloat(csv_fields(2,:))     ;(/   130,      140,     150,     160/)
 station_names = csv_fields(0,:)        ;(/"New Orleans","Atlanta", "Nashville", "Chicago"/)
-station_so2 = csv_fields(3,:)
+station_so2 = tofloat(csv_fields(3,:))
 
 mkres = True
 ; mkres@gsMarkerIndex = 16 ; filled dot
@@ -88,20 +80,18 @@ cities_count = dimsizes(station_names)
 markerid = new(cities_count, graphic)
 textid = new(cities_count, graphic)
 do i = 0, cities_count-1
-  mkres@gsMarkerColor      = "blue" ;mycolors(i,:)
-  ; gsres@gsMarkerSizeF      = base_size * (i+1)/3.
-  ; gsres@gsMarkerThicknessF = 0.7*(i+1)
-  ; pmid(i) = gsn_add_polymarker(wks, map, lon_new(i,:), lat_new(i,:), gsres)
+  color_index = tointeger( (station_so2(i) / so2max) * mycolors_num )
+  ; print("color_index " + color_index)
+  mkres@gsMarkerColor = mycolors(color_index,:)
   mkres = True
   mkres@gsMarkerIndex = 16 ; filled dot
   ; col2 = mycolors(::33, :)
   ; mkres@gsMarkerColor      = col2 ;"blue"  ;colors(i,:)
-  ; mkres@gsMarkerSizeF      = base_size * (i+1)/3.
-  ; mkres@gsMarkerThicknessF = 0.7*(i+1)
   txres@txFontHeightF = 0.015
   txres@txJust        = "CenterLeft"
   markerid(i) = gsn_add_polymarker(wks, plot, lons(i), lats(i), mkres)
-  textid(i) = gsn_add_text(wks,plot,"   " + station_names(i), lons(i), lats(i), txres)
+  delta = (-1)^i 
+  textid(i) = gsn_add_text(wks,plot,"   " + station_names(i), lons(i), lats(i)+delta, txres)
 end do
 
 draw(plot)
