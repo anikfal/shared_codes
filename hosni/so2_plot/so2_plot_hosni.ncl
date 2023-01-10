@@ -16,8 +16,12 @@ do nf=0, nfields-1
 end do
 
 
-; var = read_colormap_file("NCV_jet")
-; ff = span_color_rgba("WhiteBlueGreenYellowRed", 1)
+; mycolors = read_colormap_file("NCV_jet")
+mycolors = read_colormap_file("WhiteBlueGreenYellowRed")
+; var = read_colormap_file("WhiteBlueGreenYellowRed")
+; print(var(:55,:))
+; exit()
+  ; ff = span_color_rgba("WhiteBlueGreenYellowRed", 1)
 ; colors  = span_color_rgba("NCV_jet",8)
 ; printVarSummary(colors)
 ; printVarSummary(var)
@@ -43,7 +47,12 @@ opts@MainTitle = "SO2 Mixing Ratio"
 
 res = opts
 res@cnFillOn = True
-res@cnFillPalette = "WhiteBlueGreenYellowRed"
+; res@cnFillPalette = "WhiteBlueGreenYellowRed"
+res@cnFillPalette = mycolors  ;"WhiteBlueGreenYellowRed"
+res@cnLevelSelectionMode = "ManualLevels"
+res@cnMinLevelValF = 2
+res@cnMaxLevelValF = 44
+res@cnLevelSpacingF = 2
 contourfas = wrf_contour(filefas, wks, so2fas, res)
 pltres = True
 pltres@PanelPlot = True  ; to overlay marker
@@ -61,19 +70,39 @@ mpres@mpFillDrawOrder             =  "PreDraw"  ;"PostDraw"  ; draw map fill las
 plot = wrf_map_overlays(filewrf, wks, (/contourfas/), pltres, mpres)
 lats  = tofloat(csv_fields(1,:))     ;(/   -20,       -25,      -30,      -35/)
 lons  = tofloat(csv_fields(2,:))     ;(/   130,      140,     150,     160/)
-tstrs = csv_fields(0,:)        ;(/"New Orleans","Atlanta", "Nashville", "Chicago"/)
+station_names = csv_fields(0,:)        ;(/"New Orleans","Atlanta", "Nashville", "Chicago"/)
+station_so2 = csv_fields(3,:)
+
 mkres = True
-mkres@gsMarkerIndex = 16 ; filled dot
-mkres@gsMarkerColor      = "blue"  ;colors(i,:)
-; mkres@gsMarkerSizeF      = base_size * (i+1)/3.
-; mkres@gsMarkerThicknessF = 0.7*(i+1)
-
-
+; mkres@gsMarkerIndex = 16 ; filled dot
+; ; col2 = mycolors(::33, :)
+; mkres@gsMarkerColor      = col2 ;"blue"  ;colors(i,:)
+; ; mkres@gsMarkerSizeF      = base_size * (i+1)/3.
+; ; mkres@gsMarkerThicknessF = 0.7*(i+1)
 txres = True
-txres@txFontHeightF = 0.015
-txres@txJust        = "CenterLeft"
-mkid = gsn_add_polymarker(wks, plot, lons, lats, mkres)
-txid = gsn_add_text(wks,plot,"   " + tstrs, lons, lats, txres)
+; txres@txFontHeightF = 0.015
+; txres@txJust        = "CenterLeft"
+; mkid = gsn_add_polymarker(wks, plot, lons, lats, mkres)
+; txid = gsn_add_text(wks,plot,"   " + station_names, lons, lats, txres)
+cities_count = dimsizes(station_names)
+markerid = new(cities_count, graphic)
+textid = new(cities_count, graphic)
+do i = 0, cities_count-1
+  mkres@gsMarkerColor      = "blue" ;mycolors(i,:)
+  ; gsres@gsMarkerSizeF      = base_size * (i+1)/3.
+  ; gsres@gsMarkerThicknessF = 0.7*(i+1)
+  ; pmid(i) = gsn_add_polymarker(wks, map, lon_new(i,:), lat_new(i,:), gsres)
+  mkres = True
+  mkres@gsMarkerIndex = 16 ; filled dot
+  ; col2 = mycolors(::33, :)
+  ; mkres@gsMarkerColor      = col2 ;"blue"  ;colors(i,:)
+  ; mkres@gsMarkerSizeF      = base_size * (i+1)/3.
+  ; mkres@gsMarkerThicknessF = 0.7*(i+1)
+  txres@txFontHeightF = 0.015
+  txres@txJust        = "CenterLeft"
+  markerid(i) = gsn_add_polymarker(wks, plot, lons(i), lats(i), mkres)
+  textid(i) = gsn_add_text(wks,plot,"   " + station_names(i), lons(i), lats(i), txres)
+end do
 
 draw(plot)
 frame(wks)
