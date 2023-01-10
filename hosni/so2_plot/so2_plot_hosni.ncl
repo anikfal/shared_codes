@@ -3,9 +3,22 @@ load "$NCARG_ROOT/lib/ncarg/nclscripts/wrf/WRFUserARW.ncl"
 
 begin
 
-var = read_colormap_file("NCV_jet")
+
+csvfile  = asciiread("station_data.csv",-1,"string")
+nlines = dimsizes(csvfile)-1   ; First line is a header
+;---First line is name of each field
+delim       = ","
+field_names = str_split(csvfile(0), delim)
+nfields     = dimsizes(field_names)
+csv_fields = new((/nfields,nlines/), string)
+do nf=0, nfields-1
+  csv_fields(nf,:) = str_get_field(csvfile(1:), nf+1, delim)    
+end do
+
+
+; var = read_colormap_file("NCV_jet")
 ; ff = span_color_rgba("WhiteBlueGreenYellowRed", 1)
-colors  = span_color_rgba("NCV_jet",8)
+; colors  = span_color_rgba("NCV_jet",8)
 ; printVarSummary(colors)
 ; printVarSummary(var)
 
@@ -46,36 +59,9 @@ mpres@gsnFrame              =  False
 mpres@mpFillColors = (/"transparent","gray50","gray50","gray50", "transparent"/)
 mpres@mpFillDrawOrder             =  "PreDraw"  ;"PostDraw"  ; draw map fill last
 plot = wrf_map_overlays(filewrf, wks, (/contourfas/), pltres, mpres)
-
-; exit()
-
-; gsres = True ; set some resource
-; gsres@gsMarkerSizeF = 10.
-; gsres@gsMarkerIndex = 16.  ; filled circles
-; gsres@gsMarkerColor = 0  ; white
-; ; xs_d02 = (/lon_min_d02, lon_max_d02, lon_max_d02, lon_min_d02/)
-; ; ys_d02 = (/lat_min_d02, lat_min_d02, lat_max_d02, lat_max_d02/)
-; ; xs_d03 = (/lon_min_d03, lon_max_d03, lon_max_d03, lon_min_d03/)
-; ; ys_d03 = (/lat_min_d03, lat_min_d03, lat_max_d03, lat_max_d03/)
-; lon_min_d02 = 120
-; lon_max_d02 = 140
-; lat_min_d02 = -40
-; lat_max_d02 = -20
-; lon_min_d03 = 130
-; lon_max_d03 = 150
-; lat_min_d03 = -30
-; lat_max_d03 = -20
-; xs_d02 = (/lon_min_d02, lon_max_d02, lon_max_d02, lon_min_d02/)
-; ys_d02 = (/lat_min_d02, lat_min_d02, lat_max_d02, lat_max_d02/)
-; xs_d03 = (/lon_min_d03, lon_max_d03, lon_max_d03, lon_min_d03/)
-; ys_d03 = (/lat_min_d03, lat_min_d03, lat_max_d03, lat_max_d03/)
-; xs = array_append_record(xs_d02, xs_d03, 0)
-; ys = array_append_record(ys_d02, ys_d03, 0)
-; plot1 = gsn_add_polymarker(wks,plot,xs,ys,gsres)
-
-lats  = (/   -20,       -25,      -30,      -35/)
-lons  = (/   130,      140,     150,     160/)
-tstrs = (/"New Orleans","Atlanta", "Nashville", "Chicago"/)
+lats  = tofloat(csv_fields(1,:))     ;(/   -20,       -25,      -30,      -35/)
+lons  = tofloat(csv_fields(2,:))     ;(/   130,      140,     150,     160/)
+tstrs = csv_fields(0,:)        ;(/"New Orleans","Atlanta", "Nashville", "Chicago"/)
 mkres = True
 mkres@gsMarkerIndex = 16 ; filled dot
 mkres@gsMarkerColor      = "blue"  ;colors(i,:)
@@ -86,8 +72,8 @@ mkres@gsMarkerColor      = "blue"  ;colors(i,:)
 txres = True
 txres@txFontHeightF = 0.015
 txres@txJust        = "CenterLeft"
-mkid = gsn_add_polymarker(wks,plot,lons,lats,mkres)
-txid = gsn_add_text(wks,plot,"   " + tstrs,lons,lats,txres)
+mkid = gsn_add_polymarker(wks, plot, lons, lats, mkres)
+txid = gsn_add_text(wks,plot,"   " + tstrs, lons, lats, txres)
 
 draw(plot)
 frame(wks)
